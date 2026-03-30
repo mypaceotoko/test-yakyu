@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro Timer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --work-color: #e74c3c;
+      --break-color: #27ae60;
+      --bg: #1a1a2e;
+      --card: #16213e;
+      --text: #eee;
+      --muted: #888;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: clamp(18px, 4vw, 26px);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* Mode tabs */
+    .tabs {
+      display: flex;
+      background: var(--card);
+      border-radius: 50px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .tab {
+      padding: 8px 20px;
+      border-radius: 50px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .tab.active {
+      background: var(--accent, var(--work-color));
+      color: #fff;
+    }
+
+    /* Timer circle */
+    .timer-wrap {
+      position: relative;
+      width: min(280px, 70vw);
+      height: min(280px, 70vw);
+    }
+
+    .timer-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .timer-track {
+      fill: none;
+      stroke: #2a2a4a;
+      stroke-width: 8;
+    }
+
+    .timer-progress {
+      fill: none;
+      stroke: var(--accent, var(--work-color));
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s;
+    }
+
+    .timer-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    #time-display {
+      font-size: clamp(44px, 12vw, 68px);
+      font-weight: 200;
+      letter-spacing: 2px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #session-label {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .btn:active { transform: scale(0.95); }
+
+    #start-btn {
+      background: var(--accent, var(--work-color));
+      color: #fff;
+      padding: 16px 48px;
+      font-size: 15px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      min-width: 160px;
+    }
+
+    #start-btn:hover { filter: brightness(1.15); }
+
+    #reset-btn {
+      background: #2a2a4a;
+      color: var(--muted);
+      padding: 16px 20px;
+      font-size: 18px;
+    }
+
+    #reset-btn:hover { background: #333355; color: #fff; }
+
+    /* Session count */
+    .sessions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sessions-label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .session-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .session-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #2a2a4a;
+      transition: background 0.3s;
+    }
+
+    .session-dot.done {
+      background: var(--work-color);
+    }
+
+    /* Settings */
+    .settings {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .setting-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      padding: 12px 18px;
+      border-radius: 12px;
+      min-width: 110px;
+    }
+
+    .setting-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .setting-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .setting-btn {
+      background: #2a2a4a;
+      color: var(--text);
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .setting-btn:hover { background: #444470; }
+
+    .setting-value {
+      font-size: 18px;
+      font-weight: 300;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    /* Task input */
+    .task-area {
+      width: 100%;
+      max-width: 340px;
+    }
+
+    #task-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      text-align: center;
+    }
+
+    #task-input::placeholder { color: var(--muted); }
+    #task-input:focus { border-color: var(--accent, var(--work-color)); }
+
+    /* Notification */
+    #notification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: var(--card);
+      border: 1px solid var(--accent, var(--work-color));
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: transform 0.3s ease;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    #notification.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<h1>Pomodoro</h1>
+
+<div class="tabs">
+  <button class="tab active" data-mode="work">作業</button>
+  <button class="tab" data-mode="break">休憩</button>
+  <button class="tab" data-mode="longbreak">長休憩</button>
+</div>
+
+<div class="timer-wrap">
+  <svg class="timer-svg" viewBox="0 0 120 120">
+    <circle class="timer-track" cx="60" cy="60" r="52" />
+    <circle class="timer-progress" id="progress-ring" cx="60" cy="60" r="52" />
+  </svg>
+  <div class="timer-center">
+    <div id="time-display">25:00</div>
+    <div id="session-label">作業中</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="reset-btn" title="リセット">↺</button>
+  <button class="btn" id="start-btn">START</button>
+</div>
+
+<div class="sessions">
+  <div class="sessions-label">今日のセッション</div>
+  <div class="session-dots" id="session-dots">
+    <div class="session-dot"></div>
+    <div class="session-dot"></div>
+    <div class="session-dot"></div>
+    <div class="session-dot"></div>
+  </div>
+</div>
+
+<div class="task-area">
+  <input type="text" id="task-input" placeholder="今の作業を入力..." maxlength="60" />
+</div>
+
+<div class="settings">
+  <div class="setting-item">
+    <span class="setting-label">作業</span>
+    <div class="setting-controls">
+      <button class="setting-btn" data-target="work" data-delta="-1">−</button>
+      <span class="setting-value" id="work-val">25</span>
+      <button class="setting-btn" data-target="work" data-delta="1">+</button>
+    </div>
+  </div>
+  <div class="setting-item">
+    <span class="setting-label">休憩</span>
+    <div class="setting-controls">
+      <button class="setting-btn" data-target="break" data-delta="-1">−</button>
+      <span class="setting-value" id="break-val">5</span>
+      <button class="setting-btn" data-target="break" data-delta="1">+</button>
+    </div>
+  </div>
+  <div class="setting-item">
+    <span class="setting-label">長休憩</span>
+    <div class="setting-controls">
+      <button class="setting-btn" data-target="longbreak" data-delta="-1">−</button>
+      <span class="setting-value" id="longbreak-val">15</span>
+      <button class="setting-btn" data-target="longbreak" data-delta="1">+</button>
+    </div>
+  </div>
+</div>
+
+<div id="notification"></div>
+
+<script>
+  // --- State ---
+  const MODES = {
+    work:      { label: '作業中',   color: '#e74c3c', accent: '#e74c3c' },
+    break:     { label: '休憩中',   color: '#27ae60', accent: '#27ae60' },
+    longbreak: { label: '長休憩中', color: '#2980b9', accent: '#2980b9' },
+  };
+
+  const settings = {
+    work:      parseInt(localStorage.getItem('pomo_work')      ?? 25),
+    break:     parseInt(localStorage.getItem('pomo_break')     ?? 5),
+    longbreak: parseInt(localStorage.getItem('pomo_longbreak') ?? 15),
+  };
+
+  let mode       = 'work';
+  let running    = false;
+  let remaining  = settings[mode] * 60;
+  let total      = remaining;
+  let timerId    = null;
+  let sessions   = parseInt(localStorage.getItem('pomo_sessions_today') ?? 0);
+  let lastDate   = localStorage.getItem('pomo_date') ?? '';
+
+  // Reset session count on new day
+  const today = new Date().toDateString();
+  if (lastDate !== today) {
+    sessions = 0;
+    localStorage.setItem('pomo_sessions_today', '0');
+    localStorage.setItem('pomo_date', today);
+  }
+
+  // --- DOM ---
+  const timeDisplay  = document.getElementById('time-display');
+  const sessionLabel = document.getElementById('session-label');
+  const startBtn     = document.getElementById('start-btn');
+  const resetBtn     = document.getElementById('reset-btn');
+  const ring         = document.getElementById('progress-ring');
+  const notification = document.getElementById('notification');
+  const sessionDots  = document.getElementById('session-dots');
+
+  const CIRCUMFERENCE = 2 * Math.PI * 52; // r=52
+  ring.style.strokeDasharray  = CIRCUMFERENCE;
+  ring.style.strokeDashoffset = 0;
+
+  // --- Sync settings values ---
+  document.getElementById('work-val').textContent      = settings.work;
+  document.getElementById('break-val').textContent     = settings.break;
+  document.getElementById('longbreak-val').textContent = settings.longbreak;
+
+  // --- Render ---
+  function updateDisplay() {
+    const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+    const s = (remaining % 60).toString().padStart(2, '0');
+    timeDisplay.textContent = `${m}:${s}`;
+
+    const pct = remaining / total;
+    ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+
+    document.title = running ? `${m}:${s} — Pomodoro` : 'Pomodoro';
+  }
+
+  function updateAccent() {
+    const color = MODES[mode].accent;
+    document.documentElement.style.setProperty('--accent', color);
+  }
+
+  function updateSessionDots() {
+    const dots = sessionDots.querySelectorAll('.session-dot');
+    dots.forEach((d, i) => {
+      d.classList.toggle('done', i < (sessions % 4));
+    });
+  }
+
+  function renderTabs() {
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.mode === mode);
+    });
+    sessionLabel.textContent = MODES[mode].label;
+  }
+
+  // --- Timer ---
+  function tick() {
+    if (remaining <= 0) {
+      clearInterval(timerId);
+      timerId = null;
+      running = false;
+      onComplete();
+      return;
+    }
+    remaining--;
+    updateDisplay();
+  }
+
+  function onComplete() {
+    startBtn.textContent = 'START';
+    updateDisplay();
+
+    if (mode === 'work') {
+      sessions++;
+      localStorage.setItem('pomo_sessions_today', sessions);
+      updateSessionDots();
+      showNotification('作業完了！休憩しましょう');
+      const next = (sessions % 4 === 0) ? 'longbreak' : 'break';
+      switchMode(next);
+    } else {
+      showNotification('休憩終了！作業再開しましょう');
+      switchMode('work');
+    }
+
+    // Browser notification
+    if (Notification.permission === 'granted') {
+      new Notification('Pomodoro', {
+        body: mode === 'work' ? '作業完了！' : '休憩終了！',
+        icon: ''
+      });
+    }
+  }
+
+  function toggleTimer() {
+    if (running) {
+      clearInterval(timerId);
+      timerId = null;
+      running = false;
+      startBtn.textContent = 'START';
+    } else {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+      running = true;
+      startBtn.textContent = 'PAUSE';
+      timerId = setInterval(tick, 1000);
+    }
+  }
+
+  function resetTimer() {
+    clearInterval(timerId);
+    timerId = null;
+    running = false;
+    startBtn.textContent = 'START';
+    remaining = settings[mode] * 60;
+    total     = remaining;
+    updateDisplay();
+  }
+
+  function switchMode(newMode) {
+    clearInterval(timerId);
+    timerId = null;
+    running = false;
+    startBtn.textContent = 'START';
+    mode      = newMode;
+    remaining = settings[mode] * 60;
+    total     = remaining;
+    updateAccent();
+    renderTabs();
+    updateDisplay();
+  }
+
+  // --- Notification banner ---
+  let notifTimer = null;
+  function showNotification(msg) {
+    notification.textContent = msg;
+    notification.classList.add('show');
+    clearTimeout(notifTimer);
+    notifTimer = setTimeout(() => notification.classList.remove('show'), 3000);
+  }
+
+  // --- Events ---
+  startBtn.addEventListener('click', toggleTimer);
+  resetBtn.addEventListener('click', resetTimer);
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => switchMode(tab.dataset.mode));
+  });
+
+  document.querySelectorAll('.setting-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (running) return;
+      const target = btn.dataset.target;
+      const delta  = parseInt(btn.dataset.delta);
+      const min = target === 'work' ? 1 : 1;
+      const max = target === 'work' ? 90 : target === 'longbreak' ? 60 : 30;
+      settings[target] = Math.min(max, Math.max(min, settings[target] + delta));
+      document.getElementById(`${target}-val`).textContent = settings[target];
+      localStorage.setItem(`pomo_${target}`, settings[target]);
+      if (target === mode) {
+        remaining = settings[mode] * 60;
+        total     = remaining;
+        updateDisplay();
+      }
+    });
+  });
+
+  // Keyboard shortcut: Space = start/pause, R = reset
+  document.addEventListener('keydown', e => {
+    if (e.target === document.getElementById('task-input')) return;
+    if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
+    if (e.code === 'KeyR')  resetTimer();
+  });
+
+  // --- Init ---
+  updateAccent();
+  updateDisplay();
+  updateSessionDots();
+  renderTabs();
+</script>
+</body>
+</html>
