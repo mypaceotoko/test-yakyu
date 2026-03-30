@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>RETRO BASEBALL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow:  #f5d800;
+      --lime:    #4caf50;
+      --cream:   #f5e6c8;
+      --red:     #cc2200;
+      --white:   #ffffff;
+      --black:   #111111;
+      --blue:    #2266cc;
+      --orange:  #e07800;
+      --purple:  #7722cc;
+      --pixel:   "Press Start 2P", monospace;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: var(--cream);
+      font-family: var(--pixel);
+      font-size: 10px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ===== TITLE ===== */
+    #title-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 20px;
+      padding: 20px;
+    }
+    #title-screen .logo-sub {
+      font-size: clamp(9px, 2vw, 12px);
+      color: #888;
+      letter-spacing: 3px;
+    }
+    #title-screen h1 {
+      font-size: clamp(22px, 7vw, 48px);
+      color: var(--yellow);
+      text-shadow: 5px 5px 0 var(--red), 10px 10px 0 #000;
+      letter-spacing: 4px;
+      text-align: center;
+      line-height: 1.3;
+      animation: titlePulse 2s ease-in-out infinite;
+    }
+    @keyframes titlePulse {
+      0%, 100% { text-shadow: 5px 5px 0 var(--red), 10px 10px 0 #000; }
+      50%       { text-shadow: 5px 5px 0 var(--red), 10px 10px 0 #000, 0 0 30px var(--yellow); }
+    }
+    #title-screen .subtitle {
+      color: var(--lime);
+      font-size: clamp(8px, 2vw, 11px);
+      text-align: center;
+      line-height: 2.2;
+    }
+
+    /* ===== ボタン ===== */
+    .pixel-btn {
+      background: var(--yellow);
+      color: var(--black);
+      border: none;
+      padding: 14px 28px;
+      font-family: var(--pixel);
+      font-size: clamp(9px, 2.2vw, 12px);
+      cursor: pointer;
+      box-shadow: 4px 4px 0 #000;
+      transition: transform 0.08s, box-shadow 0.08s;
+      letter-spacing: 1px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .pixel-btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0 #000;
+    }
+    .pixel-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .pixel-btn.green  { background: var(--lime); color: #000; }
+    .pixel-btn.blue   { background: var(--blue); color: #fff; }
+    .pixel-btn.orange { background: var(--orange); color: #fff; }
+    .pixel-btn.red    { background: var(--red); color: #fff; }
+    .pixel-btn.purple { background: var(--purple); color: #fff; }
+    .pixel-btn.gray   { background: #444; color: #ccc; }
+    .pixel-btn.big    { font-size: clamp(12px, 3.5vw, 18px); padding: 18px 40px; }
+    .pixel-btn.action { font-size: clamp(13px, 4vw, 20px); padding: 20px 50px; }
+
+    /* ===== TEAM SELECT SCREEN ===== */
+    #team-select-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      gap: 16px;
+      padding: 24px 16px;
+      width: 100%;
+      max-width: 680px;
+    }
+    #team-select-screen h2 {
+      color: var(--yellow);
+      font-size: clamp(12px, 3.5vw, 18px);
+      text-align: center;
+      letter-spacing: 3px;
+      text-shadow: 3px 3px 0 #000;
+    }
+    .ts-section {
+      width: 100%;
+      background: #111;
+      border: 2px solid #333;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ts-section-title {
+      color: var(--yellow);
+      font-size: clamp(8px, 2vw, 10px);
+      letter-spacing: 2px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 6px;
+      margin-bottom: 4px;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .team-card {
+      background: #1a1a1a;
+      border: 2px solid #444;
+      padding: 10px 8px;
+      cursor: pointer;
+      transition: all 0.1s;
+      text-align: center;
+      font-family: var(--pixel);
+      font-size: clamp(7px, 1.8vw, 9px);
+      color: #aaa;
+      line-height: 1.8;
+    }
+    .team-card:hover { border-color: #888; color: #fff; }
+    .team-card.selected {
+      border-color: var(--yellow);
+      background: #2a2a00;
+      color: var(--yellow);
+      box-shadow: 0 0 10px rgba(245,216,0,0.4);
+    }
+    .team-card .team-color-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .role-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .role-btn {
+      background: #1a1a1a;
+      border: 2px solid #444;
+      padding: 14px 20px;
+      cursor: pointer;
+      font-family: var(--pixel);
+      font-size: clamp(8px, 2vw, 10px);
+      color: #aaa;
+      text-align: center;
+      line-height: 2;
+      transition: all 0.1s;
+      min-width: 140px;
+    }
+    .role-btn:hover { border-color: #888; color: #fff; }
+    .role-btn.selected-pitcher {
+      border-color: #4488ff;
+      background: #0a1a3a;
+      color: #88ccff;
+      box-shadow: 0 0 10px rgba(68,136,255,0.4);
+    }
+    .role-btn.selected-batter {
+      border-color: var(--orange);
+      background: #2a1a00;
+      color: #ffcc66;
+      box-shadow: 0 0 10px rgba(224,120,0,0.4);
+    }
+    .ts-confirm-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .ts-summary {
+      color: var(--lime);
+      font-size: clamp(8px, 2vw, 10px);
+      text-align: center;
+      line-height: 2;
+      min-height: 40px;
+    }
+
+    /* ===== GAME SCREEN ===== */
+    #game-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 680px;
+      padding: 6px 8px;
+      gap: 6px;
+    }
+
+    /* ===== SCOREBOARD ===== */
+    #scoreboard {
+      width: 100%;
+      background: #111;
+      border: 3px solid var(--yellow);
+      box-shadow: 0 0 16px rgba(245,216,0,0.4);
+      padding: 8px;
+    }
+    .sb-title {
+      text-align: center;
+      color: var(--yellow);
+      font-size: 9px;
+      margin-bottom: 6px;
+      letter-spacing: 3px;
+    }
+    .sb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(6px, 1.6vw, 9px);
+    }
+    .sb-table th, .sb-table td {
+      border: 1px solid #333;
+      text-align: center;
+      padding: 4px 2px;
+      min-width: 18px;
+    }
+    .sb-table th { color: var(--yellow); background: #1a1a1a; }
+    .sb-table .team-name {
+      text-align: left; padding-left: 6px; color: var(--lime);
+      max-width: 90px; overflow: hidden; white-space: nowrap;
+    }
+    .sb-table .team-name.player-team { color: var(--yellow); }
+    .sb-table .score-total { color: var(--yellow); font-size: 12px; }
+    .sb-table .active-inning { background: #2a2a00; color: var(--yellow); }
+
+    /* ===== STATUS BAR ===== */
+    #status-bar {
+      width: 100%;
+      background: #111;
+      border: 2px solid #333;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .status-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-label { color: #888; font-size: 7px; letter-spacing: 1px; }
+    .status-value { color: var(--cream); font-size: 12px; }
+    .status-value.big { font-size: 16px; color: var(--yellow); }
+
+    /* ===== FIELD CANVAS ===== */
+    #field-wrap {
+      width: 100%;
+      position: relative;
+      background: #0d1f0d;
+      border: 3px solid #2a4a2a;
+      box-shadow: 0 0 20px rgba(0,100,0,0.3);
+      cursor: pointer;
+    }
+    #field-canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    /* ===== PLAYER TURN BANNER ===== */
+    #player-turn-banner {
+      display: none;
+      width: 100%;
+      background: linear-gradient(90deg, #1a3a00, #2a5a00, #1a3a00);
+      border: 2px solid var(--lime);
+      box-shadow: 0 0 16px rgba(76,175,80,0.5);
+      padding: 10px 16px;
+      text-align: center;
+      color: var(--lime);
+      font-size: clamp(9px, 2.5vw, 12px);
+      letter-spacing: 2px;
+      animation: bannerPulse 0.8s ease-in-out infinite;
+    }
+    @keyframes bannerPulse {
+      0%, 100% { box-shadow: 0 0 16px rgba(76,175,80,0.5); }
+      50%       { box-shadow: 0 0 28px rgba(76,175,80,0.9); }
+    }
+
+    /* ===== BATTER INFO ===== */
+    #batter-info {
+      width: 100%;
+      background: #111;
+      border: 2px solid #333;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .batter-label { color: #888; font-size: 7px; letter-spacing: 1px; margin-bottom: 2px; }
+    .batter-name  { color: var(--white); font-size: clamp(9px, 2.5vw, 13px); }
+    .batter-stats { color: #aaa; font-size: 8px; }
+
+    /* ===== COMMENTARY ===== */
+    #commentary {
+      width: 100%;
+      background: #0a1a0a;
+      border: 2px solid var(--lime);
+      box-shadow: 0 0 10px rgba(76,175,80,0.2);
+      padding: 12px 16px;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+    }
+    #commentary-text {
+      color: var(--lime);
+      font-size: clamp(10px, 2.8vw, 13px);
+      line-height: 1.9;
+      white-space: pre-wrap;
+    }
+
+    /* ===== OUTS ===== */
+    .outs-dots { display: flex; gap: 8px; }
+    .out-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--red);
+      background: transparent;
+    }
+    .out-dot.filled { background: var(--red); }
+
+    /* ===== COUNT ===== */
+    .count-row { display: flex; gap: 5px; align-items: center; }
+    .count-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      border: 2px solid #555;
+    }
+    .count-dot.ball   { border-color: var(--lime); }
+    .count-dot.ball.on   { background: var(--lime); }
+    .count-dot.strike { border-color: var(--yellow); }
+    .count-dot.strike.on { background: var(--yellow); }
+
+    /* ===== PITCHER CONTROL PANEL ===== */
+    #pitcher-panel {
+      display: none;
+      width: 100%;
+      background: #0a0a1a;
+      border: 2px solid var(--blue);
+      box-shadow: 0 0 12px rgba(34,102,204,0.3);
+      padding: 10px 12px;
+      gap: 8px;
+      flex-direction: column;
+    }
+    .panel-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .panel-label {
+      color: #88aaff;
+      font-size: clamp(7px, 1.8vw, 9px);
+      letter-spacing: 1px;
+      min-width: 48px;
+      flex-shrink: 0;
+    }
+    .select-btns {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .sel-btn {
+      background: #1a1a2a;
+      color: #aaa;
+      border: 2px solid #444;
+      padding: 7px 12px;
+      font-family: var(--pixel);
+      font-size: clamp(7px, 1.8vw, 9px);
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #000;
+      transition: all 0.1s;
+      letter-spacing: 1px;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .sel-btn:hover { border-color: #888; color: #fff; }
+    .sel-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #000; }
+    .sel-btn.selected-course {
+      background: #1a3a6a;
+      border-color: #4488ff;
+      color: #88ccff;
+      box-shadow: 0 0 8px rgba(68,136,255,0.5), 2px 2px 0 #000;
+    }
+    .sel-btn.selected-speed {
+      background: #3a1a00;
+      border-color: #ff8800;
+      color: #ffcc66;
+      box-shadow: 0 0 8px rgba(255,136,0,0.5), 2px 2px 0 #000;
+    }
+    #course-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .zone-box {
+      width: 22px; height: 28px;
+      border: 1.5px solid #333;
+      background: #111;
+      position: relative;
+      transition: all 0.15s;
+    }
+    .zone-box.zone-active {
+      background: rgba(68,136,255,0.25);
+      border-color: #4488ff;
+      box-shadow: 0 0 6px rgba(68,136,255,0.4);
+    }
+    .zone-ball-dot {
+      position: absolute;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .zone-active .zone-ball-dot {
+      opacity: 1;
+      background: #88ccff;
+      box-shadow: 0 0 4px #4488ff;
+    }
+    #speed-meter {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .speed-bar {
+      height: 14px;
+      border: 1.5px solid #333;
+      background: #111;
+      transition: all 0.15s;
+    }
+    .speed-bar.s1 { width: 22px; }
+    .speed-bar.s2 { width: 28px; }
+    .speed-bar.s3 { width: 34px; }
+    .speed-bar.active-slow   { background: #44cc88; border-color: #44cc88; box-shadow: 0 0 5px #44cc88; }
+    .speed-bar.active-normal { background: #ffcc00; border-color: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
+    .speed-bar.active-fast   { background: #ff4444; border-color: #ff4444; box-shadow: 0 0 5px #ff4444; }
+    #speed-value {
+      color: #ffcc00;
+      font-size: clamp(7px, 1.8vw, 9px);
+      margin-left: 4px;
+    }
+
+    /* ===== MODE LABEL ===== */
+    #mode-label {
+      width: 100%;
+      text-align: center;
+      color: #888;
+      font-size: clamp(7px, 1.8vw, 9px);
+      padding: 4px 0;
+      letter-spacing: 1px;
+    }
+
+    /* ===== ACTION AREA ===== */
+    #action-area {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    /* ===== SKIP BUTTON ===== */
+    #skip-area {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 2px 0 4px;
+    }
+    #skip-btn {
+      background: #222;
+      color: #888;
+      border: 2px solid #444;
+      padding: 8px 20px;
+      font-family: var(--pixel);
+      font-size: clamp(7px, 1.8vw, 9px);
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #000;
+      letter-spacing: 1px;
+      transition: all 0.1s;
+    }
+    #skip-btn:hover { border-color: #888; color: #ccc; }
+    #skip-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #000; }
+    #skip-btn.skipping {
+      background: #2a1a00;
+      border-color: #ff8800;
+      color: #ffcc44;
+      box-shadow: 0 0 8px rgba(255,136,0,0.4), 2px 2px 0 #000;
+    }
+    #skip-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ===== RESULT SCREEN ===== */
+    #result-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 20px;
+      padding: 20px;
+      text-align: center;
+    }
+    .game-over-label {
+      color: var(--red);
+      font-size: clamp(18px, 5vw, 32px);
+      text-shadow: 4px 4px 0 #000;
+      letter-spacing: 4px;
+    }
+    #result-screen h2 {
+      color: var(--yellow);
+      font-size: clamp(14px, 4vw, 24px);
+      text-shadow: 3px 3px 0 #000;
+      line-height: 1.6;
+    }
+    #result-detail {
+      color: var(--cream);
+      font-size: clamp(9px, 2.5vw, 13px);
+      line-height: 2.4;
+    }
+    .result-mode-btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== TITLE SCREEN ========== -->
+<div id="title-screen">
+  <div class="logo-sub">★ PIXEL STADIUM ★</div>
+  <h1>RETRO<br>BASEBALL</h1>
+  <div class="subtitle">
+    伝説の選手たちが集結！<br>
+    9回制・完全アニメーション
+  </div>
+  <button class="pixel-btn big blue" id="title-start-btn">▶ GAME START</button>
+</div>
+
+<!-- ========== TEAM SELECT SCREEN ========== -->
+<div id="team-select-screen">
+  <h2>⚾ チーム選択</h2>
+
+  <!-- チーム選択 -->
+  <div class="ts-section">
+    <div class="ts-section-title">▼ あなたのチームを選んでください</div>
+    <div class="team-grid" id="team-grid">
+      <!-- JSで生成 -->
+    </div>
+  </div>
+
+  <!-- 役割選択 -->
+  <div class="ts-section">
+    <div class="ts-section-title">▼ 役割を選んでください</div>
+    <div class="role-btns">
+      <button class="role-btn" id="role-pitcher-btn" data-role="pitcher">
+        ⚾ ピッチャー<br><br>コース・球速を選んで<br>投球操作
+      </button>
+      <button class="role-btn" id="role-batter-btn" data-role="batter">
+        🏏 バッター<br><br>タイミングを合わせて<br>スイング操作
+      </button>
+    </div>
+  </div>
+
+  <!-- 確認・開始 -->
+  <div class="ts-confirm-area">
+    <div class="ts-summary" id="ts-summary">チームと役割を選んでください</div>
+    <button class="pixel-btn big blue" id="ts-confirm-btn" disabled>▶ 試合開始！</button>
+    <button class="pixel-btn gray" id="ts-back-btn" style="font-size:8px;padding:8px 16px;">⬅ タイトルへ</button>
+  </div>
+</div>
+
+<!-- ========== GAME SCREEN ========== -->
+<div id="game-screen">
+
+  <!-- SCOREBOARD -->
+  <div id="scoreboard">
+    <div class="sb-title">★ SCORE BOARD ★</div>
+    <table class="sb-table" id="score-table">
+      <thead>
+        <tr>
+          <th class="team-name">TEAM</th>
+          <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+          <th>6</th><th>7</th><th>8</th><th>9</th>
+          <th class="score-total">R</th>
+        </tr>
+      </thead>
+      <tbody id="score-body"></tbody>
+    </table>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <div class="status-item">
+      <span class="status-label">INNING</span>
+      <span class="status-value big" id="inning-display">1回表</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">OUT</span>
+      <div class="outs-dots">
+        <div class="out-dot" id="out0"></div>
+        <div class="out-dot" id="out1"></div>
+      </div>
+    </div>
+    <div class="status-item">
+      <span class="status-label">BALL</span>
+      <div class="count-row">
+        <div class="count-dot ball" id="b0"></div>
+        <div class="count-dot ball" id="b1"></div>
+        <div class="count-dot ball" id="b2"></div>
+      </div>
+    </div>
+    <div class="status-item">
+      <span class="status-label">STRIKE</span>
+      <div class="count-row">
+        <div class="count-dot strike" id="s0"></div>
+        <div class="count-dot strike" id="s1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYER TURN BANNER -->
+  <div id="player-turn-banner">⚡ あなたの番！ ⚡</div>
+
+  <!-- FIELD CANVAS -->
+  <div id="field-wrap">
+    <canvas id="field-canvas" width="560" height="380"></canvas>
+  </div>
+
+  <!-- BATTER INFO -->
+  <div id="batter-info">
+    <div>
+      <div class="batter-label">NOW BATTING</div>
+      <div class="batter-name" id="batter-name-display">---</div>
+    </div>
+    <div>
+      <div class="batter-label">PITCHER</div>
+      <div class="batter-name" id="pitcher-name-display">---</div>
+    </div>
+    <div>
+      <div class="batter-stats" id="batter-stats-display"></div>
+    </div>
+  </div>
+
+  <!-- COMMENTARY -->
+  <div id="commentary">
+    <div id="commentary-text">⚾ プレイボール！</div>
+  </div>
+
+  <!-- PITCHER CONTROL PANEL (ピッチャーモード・自分の守備番のみ表示) -->
+  <div id="pitcher-panel">
+    <div class="panel-row">
+      <span class="panel-label">コース</span>
+      <div class="select-btns" id="course-btns">
+        <button class="sel-btn" data-course="inner">⬅ 内角</button>
+        <button class="sel-btn" data-course="center">真ん中</button>
+        <button class="sel-btn" data-course="outer">外角 ➡</button>
+      </div>
+      <div id="course-indicator">
+        <div class="zone-box" id="zone-inner"><div class="zone-ball-dot"></div></div>
+        <div class="zone-box" id="zone-center"><div class="zone-ball-dot"></div></div>
+        <div class="zone-box" id="zone-outer"><div class="zone-ball-dot"></div></div>
+      </div>
+    </div>
+    <div class="panel-row">
+      <span class="panel-label">球速</span>
+      <div class="select-btns" id="speed-btns">
+        <button class="sel-btn" data-speed="slow">🐢 遅い</button>
+        <button class="sel-btn" data-speed="normal">⚾ 普通</button>
+        <button class="sel-btn" data-speed="fast">🔥 速い</button>
+      </div>
+      <div id="speed-meter">
+        <div class="speed-bar s1" id="speed-bar1"></div>
+        <div class="speed-bar s2" id="speed-bar2"></div>
+        <div class="speed-bar s3" id="speed-bar3"></div>
+        <span id="speed-value">---</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE LABEL -->
+  <div id="mode-label"></div>
+
+  <!-- ACTION BUTTONS -->
+  <div id="action-area">
+    <button class="pixel-btn blue action" id="pitch-btn" style="display:none;">⚾ PITCH !</button>
+    <button class="pixel-btn orange action" id="swing-btn" style="display:none;">🏏 SWING !</button>
+  </div>
+
+  <!-- SKIP BUTTON -->
+  <div id="skip-area">
+    <button id="skip-btn">⏩ スキップ（次の自分の番まで）</button>
+  </div>
+
+</div>
+
+<!-- ========== RESULT SCREEN ========== -->
+<div id="result-screen">
+  <div class="game-over-label">GAME OVER</div>
+  <h2 id="result-title">試合終了！</h2>
+  <div id="result-detail"></div>
+  <div class="result-mode-btns">
+    <button class="pixel-btn blue" id="retry-btn">▶ もう一度</button>
+    <button class="pixel-btn" id="back-title-btn">⬅ タイトルへ</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+<script>
+  // タイトルに戻るボタン
+  document.getElementById("back-title-btn").addEventListener("click", () => {
+    document.getElementById("result-screen").style.display = "none";
+    document.getElementById("title-screen").style.display  = "flex";
+  });
+</script>
+</body>
+</html>
