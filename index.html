@@ -536,6 +536,126 @@
     }
     #skip-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+    /* ===== POMODORO SCREEN ===== */
+    #pomodoro-screen {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 18px;
+      padding: 24px 16px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+    /* フェーズ別カラー変数 */
+    #pomodoro-screen[data-phase="work"]      { --pc: #cc3300; --pc-glow: rgba(204,51,0,0.45); }
+    #pomodoro-screen[data-phase="break"]     { --pc: #4caf50; --pc-glow: rgba(76,175,80,0.45); }
+    #pomodoro-screen[data-phase="longbreak"] { --pc: #7722cc; --pc-glow: rgba(119,34,204,0.45); }
+
+    .pomo-logo {
+      color: #cc3300;
+      font-size: clamp(12px, 3.5vw, 18px);
+      letter-spacing: 3px;
+      text-shadow: 3px 3px 0 #000;
+    }
+    .pomo-phase-label {
+      color: var(--pc, #cc3300);
+      font-size: clamp(9px, 2.5vw, 12px);
+      letter-spacing: 4px;
+      text-shadow: 2px 2px 0 #000;
+      transition: color 0.5s;
+      min-height: 20px;
+    }
+    .pomo-timer-box {
+      color: var(--cream);
+      font-size: clamp(52px, 16vw, 88px);
+      letter-spacing: 6px;
+      line-height: 1.1;
+      border: 4px solid var(--pc, #cc3300);
+      padding: 16px 28px;
+      background: #050505;
+      box-shadow: 0 0 28px var(--pc-glow, rgba(204,51,0,0.45)), 6px 6px 0 #000;
+      min-width: 260px;
+      transition: border-color 0.5s, box-shadow 0.5s;
+    }
+    .pomo-progress {
+      width: 100%;
+      max-width: 340px;
+      height: 10px;
+      background: #1a1a1a;
+      border: 2px solid #333;
+      overflow: hidden;
+    }
+    .pomo-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--pc, #cc3300);
+      transition: width 1s linear, background 0.5s;
+    }
+    .pomo-dots {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+    }
+    .pomo-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #444;
+      background: transparent;
+      transition: all 0.3s;
+    }
+    .pomo-dot.active    { border-color: var(--pc, #cc3300); box-shadow: 0 0 8px var(--pc-glow, rgba(204,51,0,0.6)); }
+    .pomo-dot.completed { background: var(--pc, #cc3300); border-color: var(--pc, #cc3300); }
+    .pomo-session-label {
+      color: #666;
+      font-size: 8px;
+      letter-spacing: 2px;
+    }
+    .pomo-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .pomo-ctrl-btn { font-size: clamp(8px, 2vw, 11px); padding: 12px 18px; }
+    .pomo-settings {
+      background: #0d0d0d;
+      border: 2px solid #2a2a2a;
+      padding: 12px 20px;
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pomo-settings-title {
+      color: #555;
+      font-size: 7px;
+      letter-spacing: 2px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 6px;
+      margin-bottom: 2px;
+    }
+    .pomo-setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .pomo-setting-lbl { color: #777; font-size: 7px; letter-spacing: 1px; }
+    .pomo-select {
+      background: #111;
+      color: var(--cream);
+      border: 2px solid #333;
+      padding: 5px 8px;
+      font-family: var(--pixel);
+      font-size: 8px;
+      cursor: pointer;
+      outline: none;
+    }
+    .pomo-select:focus { border-color: var(--yellow); }
+
     /* ===== RESULT SCREEN ===== */
     #result-screen {
       display: none;
@@ -583,6 +703,7 @@
     9回制・完全アニメーション
   </div>
   <button class="pixel-btn big blue" id="title-start-btn">▶ GAME START</button>
+  <button class="pixel-btn red" id="title-pomo-btn" style="font-size:clamp(9px,2.2vw,11px);padding:11px 22px;">🍅 POMODORO TIMER</button>
 </div>
 
 <!-- ========== TEAM SELECT SCREEN ========== -->
@@ -742,6 +863,59 @@
 
 </div>
 
+<!-- ========== POMODORO SCREEN ========== -->
+<div id="pomodoro-screen" style="display:none;" data-phase="work">
+
+  <div class="pomo-logo">🍅 POMODORO TIMER</div>
+
+  <div class="pomo-phase-label" id="pomo-phase">WORK TIME</div>
+
+  <div class="pomo-timer-box" id="pomo-timer">25:00</div>
+
+  <div class="pomo-progress">
+    <div class="pomo-progress-fill" id="pomo-progress-fill"></div>
+  </div>
+
+  <div class="pomo-dots">
+    <div class="pomo-dot active" id="pomo-dot-0"></div>
+    <div class="pomo-dot"        id="pomo-dot-1"></div>
+    <div class="pomo-dot"        id="pomo-dot-2"></div>
+    <div class="pomo-dot"        id="pomo-dot-3"></div>
+  </div>
+
+  <div class="pomo-session-label" id="pomo-session-label">SESSION 1 / 4</div>
+
+  <div class="pomo-controls">
+    <button class="pixel-btn green pomo-ctrl-btn" id="pomo-start-btn">▶ START</button>
+    <button class="pixel-btn orange pomo-ctrl-btn" id="pomo-pause-btn" disabled>⏸ PAUSE</button>
+    <button class="pixel-btn gray pomo-ctrl-btn"   id="pomo-reset-btn">↺ RESET</button>
+  </div>
+
+  <div class="pomo-settings">
+    <div class="pomo-settings-title">▼ SETTINGS</div>
+    <div class="pomo-setting-row">
+      <span class="pomo-setting-lbl">作業時間</span>
+      <select class="pomo-select" id="pomo-work-select">
+        <option value="25" selected>25分</option>
+        <option value="30">30分</option>
+        <option value="45">45分</option>
+        <option value="50">50分</option>
+      </select>
+    </div>
+    <div class="pomo-setting-row">
+      <span class="pomo-setting-lbl">休憩時間</span>
+      <select class="pomo-select" id="pomo-break-select">
+        <option value="5" selected>5分</option>
+        <option value="10">10分</option>
+        <option value="15">15分</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="pixel-btn gray" id="pomo-back-btn" style="font-size:8px;padding:8px 16px;">⬅ タイトルへ</button>
+
+</div>
+
 <!-- ========== RESULT SCREEN ========== -->
 <div id="result-screen">
   <div class="game-over-label">GAME OVER</div>
@@ -754,6 +928,7 @@
 </div>
 
 <script src="game.js"></script>
+<script src="pomodoro.js"></script>
 <script>
   // タイトルに戻るボタン
   document.getElementById("back-title-btn").addEventListener("click", () => {
